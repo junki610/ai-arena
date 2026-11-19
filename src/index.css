@@ -1,62 +1,377 @@
 @import "tailwindcss";
 
-/* 試合再生用の2D簡易アニメーション定義 */
-@keyframes lunge-right {
-  0% { transform: translateX(0) scale(1); }
-  40% { transform: translateX(32px) scale(1.06); }
-  100% { transform: translateX(0) scale(1); }
+/* 待機中：浮遊＋呼吸ループ */
+@keyframes idle-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-7px) scale(1.03, 0.98);
+  }
 }
 
-@keyframes lunge-left {
-  0% { transform: translateX(0) scale(1); }
-  40% { transform: translateX(-32px) scale(1.06); }
-  100% { transform: translateX(0) scale(1); }
+/* 試合開始：左右スライドイン */
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-110px) scale(0.85);
+    opacity: 0;
+  }
+  70% {
+    transform: translateX(10px) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
 }
 
-@keyframes hit-shake {
-  0%, 100% { transform: translateX(0); filter: brightness(1); }
-  20% { transform: translateX(-8px); filter: brightness(1.6) saturate(1.4); }
-  40% { transform: translateX(8px); filter: brightness(1.3); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(110px) scale(0.85);
+    opacity: 0;
+  }
+  70% {
+    transform: translateX(-10px) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
 }
 
+@keyframes vs-splash {
+  0% {
+    transform: scale(2.2) rotate(-8deg);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.06) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+/* 攻撃時：相手方向へダッシュ */
+@keyframes dash-right {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  35% {
+    transform: translateX(52px) scale(1.1) rotate(6deg);
+  }
+  60% {
+    transform: translateX(46px) scale(1.05);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes dash-left {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  35% {
+    transform: translateX(-52px) scale(1.1) rotate(-6deg);
+  }
+  60% {
+    transform: translateX(-46px) scale(1.05);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* 被弾時：白フラッシュ＋ノックバック */
+@keyframes hit-knockback-left {
+  0% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  18% {
+    transform: translateX(-22px) rotate(-10deg);
+    filter: brightness(2.8) contrast(0.7);
+  }
+  42% {
+    transform: translateX(-14px) rotate(-5deg);
+    filter: brightness(1.8);
+  }
+  68% {
+    transform: translateX(6px) rotate(2deg);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+    filter: brightness(1);
+  }
+}
+
+@keyframes hit-knockback-right {
+  0% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  18% {
+    transform: translateX(22px) rotate(10deg);
+    filter: brightness(2.8) contrast(0.7);
+  }
+  42% {
+    transform: translateX(14px) rotate(5deg);
+    filter: brightness(1.8);
+  }
+  68% {
+    transform: translateX(-6px) rotate(-2deg);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+    filter: brightness(1);
+  }
+}
+
+/* クリティカル時のステージ画面シェイク */
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-8px, 4px); }
+  30% { transform: translate(8px, -4px); }
+  45% { transform: translate(-6px, -3px); }
+  60% { transform: translate(6px, 3px); }
+  75% { transform: translate(-3px, 2px); }
+}
+
+/* 防御・溜め演出 */
 @keyframes guard-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.0); }
-  50% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0.35); }
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(56, 189, 248, 0)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.85)); }
 }
 
 @keyframes charge-glow {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.0); }
-  50% { transform: scale(1.05); box-shadow: 0 0 24px 6px rgba(251, 191, 36, 0.45); }
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 22px rgba(251, 191, 36, 0.9)); }
 }
 
-.animate-lunge-right {
-  animation: lunge-right 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+/* ダメージ・回復のフローティングポップアップ */
+@keyframes damage-float {
+  0% {
+    transform: translate(-50%, 6px) scale(0.7);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -10px) scale(1.15);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-50%, -28px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -44px) scale(0.92);
+    opacity: 0;
+  }
 }
 
-.animate-lunge-left {
-  animation: lunge-left 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+@keyframes crit-float {
+  0% {
+    transform: translate(-50%, 8px) scale(0.5) rotate(-6deg);
+    opacity: 0;
+  }
+  22% {
+    transform: translate(-50%, -14px) scale(1.35) rotate(3deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-50%, -34px) scale(1.15) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -54px) scale(1);
+    opacity: 0;
+  }
 }
 
-.animate-hit-shake {
-  animation: hit-shake 0.4s ease-in-out;
+/* スキルエフェクトのバースト */
+@keyframes fx-burst {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
 }
 
+/* 低HPバー点滅 */
+@keyframes hp-critical {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* 決着時：敗者KO倒れ込み */
+@keyframes ko-fall-left {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+    filter: grayscale(0);
+  }
+  40% {
+    transform: translateX(-16px) translateY(6px) rotate(-38deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-20px) translateY(22px) rotate(-84deg);
+    opacity: 0.5;
+    filter: grayscale(0.85);
+  }
+}
+
+@keyframes ko-fall-right {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+    filter: grayscale(0);
+  }
+  40% {
+    transform: translateX(16px) translateY(6px) rotate(38deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(20px) translateY(22px) rotate(84deg);
+    opacity: 0.5;
+    filter: grayscale(0.85);
+  }
+}
+
+/* 決着時：勝者の勝利バウンス */
+@keyframes victory-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.45));
+  }
+  40% {
+    transform: translateY(-16px) scale(1.08);
+    filter: drop-shadow(0 0 22px rgba(250, 204, 21, 0.85));
+  }
+  65% {
+    transform: translateY(0) scale(0.96, 1.04);
+  }
+}
+
+/* 決着時：FINISH! 表示 */
+@keyframes finish-pop {
+  0% {
+    transform: scale(2.1) rotate(-6deg);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(0.96) rotate(1deg);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.04) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-idle-float {
+  animation: idle-float 2.6s ease-in-out infinite;
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-vs-splash {
+  animation: vs-splash 0.85s ease-out forwards;
+}
+.animate-dash-right {
+  animation: dash-right 0.44s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-dash-left {
+  animation: dash-left 0.44s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-hit-knockback-left {
+  animation: hit-knockback-left 0.46s ease-out;
+}
+.animate-hit-knockback-right {
+  animation: hit-knockback-right 0.46s ease-out;
+}
+.animate-screen-shake {
+  animation: screen-shake 0.38s ease-in-out;
+}
 .animate-guard-pulse {
-  animation: guard-pulse 0.5s ease-out;
+  animation: guard-pulse 0.55s ease-out;
 }
-
 .animate-charge-glow {
-  animation: charge-glow 0.55s ease-in-out;
+  animation: charge-glow 0.6s ease-in-out;
+}
+.animate-damage-float {
+  animation: damage-float 0.85s ease-out forwards;
+}
+.animate-crit-float {
+  animation: crit-float 0.95s ease-out forwards;
+}
+.animate-fx-burst {
+  animation: fx-burst 0.55s ease-out forwards;
+}
+.animate-hp-critical {
+  animation: hp-critical 0.75s ease-in-out infinite;
+}
+.animate-ko-fall-left {
+  animation: ko-fall-left 0.75s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+.animate-ko-fall-right {
+  animation: ko-fall-right 0.75s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+.animate-victory-bounce {
+  animation: victory-bounce 1.05s ease-in-out infinite;
+}
+.animate-finish-pop {
+  animation: finish-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-lunge-right,
-  .animate-lunge-left,
-  .animate-hit-shake,
+  .animate-idle-float,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-vs-splash,
+  .animate-dash-right,
+  .animate-dash-left,
+  .animate-hit-knockback-left,
+  .animate-hit-knockback-right,
+  .animate-screen-shake,
   .animate-guard-pulse,
-  .animate-charge-glow {
+  .animate-charge-glow,
+  .animate-damage-float,
+  .animate-crit-float,
+  .animate-fx-burst,
+  .animate-hp-critical,
+  .animate-ko-fall-left,
+  .animate-ko-fall-right,
+  .animate-victory-bounce,
+  .animate-finish-pop {
     animation: none;
   }
 }

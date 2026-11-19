@@ -53,7 +53,7 @@ export function HomePage({
             <h1 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
               今日の対戦カード・出走表
             </h1>
-            <p className="text-xs leading-relaxed text-slate-400 sm:text-sm">
+            <p className="text-sm leading-relaxed text-slate-300 sm:text-[15px]">
               近5戦（○勝 / ●敗）やエンジン傾向・オッズを見比べて無料ポイントで勝敗を予想し、オートバトルを観戦できます。
             </p>
           </div>
@@ -257,7 +257,7 @@ function FighterRow({
               >
                 {corner}
               </span>
-              <span className="truncate text-sm font-bold text-white">
+              <span className="truncate text-[15px] font-bold text-white">
                 {fighter.name}
               </span>
               {!fighter.isPreset && (
@@ -273,10 +273,10 @@ function FighterRow({
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <EngineBadge engine={fighter.engine} />
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs text-slate-300">
                 性格: {PERSONALITY_PROFILES[fighter.personality].label}
               </span>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-xs text-slate-400">
                 Rate {fighter.rating}
               </span>
             </div>
@@ -286,13 +286,13 @@ function FighterRow({
         {/* オッズと勝率 */}
         <div className="shrink-0 text-right">
           <div className="text-xs text-slate-400">オッズ</div>
-          <div className="text-lg font-extrabold tabular-nums text-amber-300">
+          <div className="text-xl font-extrabold tabular-nums text-amber-300">
             {odds.toFixed(1)}
             <span className="ml-0.5 text-xs font-normal text-amber-200/80">
               倍
             </span>
           </div>
-          <div className="text-[11px] text-slate-400">
+          <div className="text-xs text-slate-300">
             予想勝率 {predictedWinRate}%
           </div>
         </div>
@@ -304,7 +304,7 @@ function FighterRow({
           <span className="text-[11px] font-medium text-slate-400">近5戦:</span>
           <RecentFormBadges form={fighter.recentForm} />
         </div>
-        <div className="text-[11px] text-slate-400">
+        <div className="text-xs text-slate-300">
           通算 {fighter.wins}勝{fighter.losses}敗（勝率 {careerWinRate}%）
         </div>
       </div>

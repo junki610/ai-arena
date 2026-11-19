@@ -59,12 +59,32 @@ export interface FighterLineage {
   note: string;
 }
 
+/** ファイターのアバター形状 */
+export type AvatarBodyType = 'round' | 'robo' | 'slime' | 'spiky';
+
+/** ファイターのアバターパーツ */
+export type AvatarPartsType = 'horn' | 'wing' | 'antenna' | 'ear' | 'halo' | 'none';
+
+/** ファイターのアバターの目 */
+export type AvatarEyesType = 'round' | 'sharp' | 'happy' | 'star';
+
+/** ファイターの見た目設定 */
+export interface FighterAppearance {
+  body: AvatarBodyType;
+  mainColor: string;
+  subColor: string;
+  parts: AvatarPartsType;
+  eyes: AvatarEyesType;
+}
+
 /** ファイターエンティティ */
 export interface Fighter {
   id: string;
   name: string;
   engine: EngineType;
   personality: PersonalityType;
+  /** アバター見た目設定 */
+  appearance: FighterAppearance;
   stats: FighterStats;
   /** 選択されたスキルID（必ず3つ） */
   skillIds: [string, string, string];

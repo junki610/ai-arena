@@ -72,7 +72,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
         <h1 className="text-xl font-extrabold text-white sm:text-2xl">
           結果・ランキング・系譜
         </h1>
-        <p className="text-xs text-slate-400 sm:text-sm">
+        <p className="text-sm text-slate-300 sm:text-[15px]">
           試合の勝因サマリー、ファイターのElo風レート戦績、無料ポイント予想者ランキングを確認できます。
         </p>
       </div>
@@ -90,7 +90,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
               className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition sm:text-sm ${
                 active
                   ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
-                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  : 'border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-700 hover:text-white'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                       <Trophy className="h-3.5 w-3.5" />
                       勝者: {res.winnerName}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-300">
                       vs {res.loserName}
                     </span>
                     <span className="rounded bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
@@ -143,7 +143,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                   {res.summary}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
                   <span>
                     レート変動: {res.winnerName}{' '}
                     <strong className="text-emerald-300">
@@ -171,12 +171,12 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
             <table className="w-full min-w-[640px] text-left text-xs sm:text-sm">
               <thead className="border-b border-slate-800 bg-slate-950/80 text-slate-400">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">順位</th>
-                  <th className="px-4 py-3 font-semibold">ファイター</th>
-                  <th className="px-4 py-3 font-semibold">エンジン / 性格</th>
-                  <th className="px-4 py-3 font-semibold">戦績（勝率）</th>
-                  <th className="px-4 py-3 font-semibold">近5戦</th>
-                  <th className="px-4 py-3 text-right font-semibold">
+                  <th className="px-4 py-3.5 font-semibold">順位</th>
+                  <th className="px-4 py-3.5 font-semibold">ファイター</th>
+                  <th className="px-4 py-3.5 font-semibold">エンジン / 性格</th>
+                  <th className="px-4 py-3.5 font-semibold">戦績（勝率）</th>
+                  <th className="px-4 py-3.5 font-semibold">近5戦</th>
+                  <th className="px-4 py-3.5 text-right font-semibold">
                     Elo風レート
                   </th>
                 </tr>
@@ -189,10 +189,10 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                       key={fighter.id}
                       className="transition hover:bg-slate-800/40"
                     >
-                      <td className="px-4 py-3 font-extrabold tabular-nums text-slate-300">
+                      <td className="px-4 py-3.5 font-extrabold tabular-nums text-slate-300">
                         #{idx + 1}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <FighterAvatar fighter={fighter} size="sm" />
                           <div>
@@ -204,7 +204,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-slate-500">
+                            <div className="text-xs text-slate-300">
                               HP{fighter.stats.hp} 攻{fighter.stats.attack} 防
                               {fighter.stats.defense} 速{fighter.stats.speed} 技
                               {fighter.stats.technique}
@@ -212,22 +212,22 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="space-y-1">
                           <EngineBadge engine={fighter.engine} />
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-xs text-slate-300">
                             性格: {PERSONALITY_PROFILES[fighter.personality].label}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 tabular-nums text-slate-200">
+                      <td className="px-4 py-3.5 tabular-nums text-slate-200">
                         {fighter.wins}勝 {fighter.losses}敗
                         <span className="ml-1 text-slate-400">({winRate}%)</span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <RecentFormBadges form={fighter.recentForm} />
                       </td>
-                      <td className="px-4 py-3 text-right font-black tabular-nums text-cyan-300">
+                      <td className="px-4 py-3.5 text-right font-black tabular-nums text-cyan-300">
                         {fighter.rating}
                       </td>
                     </tr>
@@ -247,7 +247,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
               <h2 className="text-base font-bold text-white">
                 予想者ランキング（無料ポイント順）
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300">
                 無料ポイントは本ランキング表示にのみ使用されます（換金・購入不可）。
               </p>
             </div>
@@ -262,7 +262,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
               return (
                 <div
                   key={entry.id}
-                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3.5 ${
                     entry.isCurrentUser
                       ? 'border-amber-400/60 bg-amber-500/10'
                       : 'border-slate-800 bg-slate-950/70'
@@ -291,7 +291,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-slate-300">
                         的中 {entry.totalWins} / {entry.totalBets} 戦（的中率 {hitRate}%）
                       </div>
                     </div>
@@ -319,7 +319,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
               <h2 className="text-base font-bold text-white">
                 ファイターの系譜（スキル継承ビュー枠）
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300">
                 親ファイターと受け継いだスキルを可視化するための系譜フレームです。現在は第1世代（初期個体）として表示されます。
               </p>
             </div>
@@ -362,7 +362,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                     <div className="mt-1.5 text-sm font-bold text-slate-300">
                       {parentName ?? '未登録（第1世代・始祖個体）'}
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-300">
                       将来アップデートで2体のファイターから次世代を育成する際、ここに親個体が表示されます。
                     </p>
                   </div>
@@ -381,7 +381,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
             {/* 受け継いだスキル表示枠 */}
             <div className="rounded-xl border border-dashed border-cyan-500/30 bg-cyan-500/5 p-4">
               {lineageFighter.lineage.inheritedSkillIds.length === 0 ? (
-                <p className="text-center text-xs text-slate-400">
+                <p className="text-center text-xs text-slate-300">
                   継承スキルなし（第1世代のため、すべて自身の習得スキルです）
                 </p>
               ) : (
@@ -417,7 +417,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                     </div>
                   </div>
                 </div>
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-slate-300">
                   Rate <strong className="text-white">{lineageFighter.rating}</strong> /{' '}
                   {lineageFighter.wins}勝{lineageFighter.losses}敗
                 </div>
@@ -442,7 +442,7 @@ export function ResultsPage({ state, onOpenBattle }: ResultsPageProps) {
                 </div>
               </div>
 
-              <p className="mt-3 text-xs text-slate-400">
+              <p className="mt-3 text-xs text-slate-300">
                 {lineageFighter.lineage.note}
               </p>
             </div>

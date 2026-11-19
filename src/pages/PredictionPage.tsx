@@ -142,7 +142,7 @@ export function PredictionPage({
               <h1 className="text-lg font-extrabold text-white sm:text-xl">
                 勝敗を予想する
               </h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-300">
                 オッズは両者の勝率予測と人気（賭け分布）から算出されます。
               </p>
             </div>
@@ -301,6 +301,64 @@ export function PredictionPage({
               </div>
             </div>
 
+            {/* 予想サマリー（確定前に選択中ファイター・賭け額・見返りを一目で確認） */}
+            <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
+              <div className="mb-3 flex items-center gap-2 text-xs font-bold text-amber-200 sm:text-sm">
+                <Ticket className="h-4 w-4 shrink-0" />
+                予想サマリー（確定前に確認）
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 lg:grid-cols-4">
+                <div>
+                  <dt className="text-[11px] font-semibold text-slate-400">
+                    対戦カード
+                  </dt>
+                  <dd className="mt-0.5 text-xs font-bold text-white sm:text-sm">
+                    {activeMatch.roundLabel}
+                    <span className="ml-1.5 font-normal text-slate-400">
+                      {activeMatch.deadlineLabel}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-slate-400">
+                    あなたの予想
+                  </dt>
+                  <dd className="mt-0.5 text-xs font-bold text-white sm:text-sm">
+                    {effectivePickedId === fighterA.id
+                      ? fighterA.name
+                      : fighterB.name}
+                    <span className="ml-1.5 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">
+                      {effectivePickedId === fighterA.id ? '赤枠' : '青枠'}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-slate-400">
+                    賭けポイント × オッズ
+                  </dt>
+                  <dd className="mt-0.5 text-xs font-bold tabular-nums text-white sm:text-sm">
+                    {amount.toLocaleString()} pt × {selectedOdds.toFixed(1)} 倍
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-slate-400">
+                    的中時の獲得（利益）
+                  </dt>
+                  <dd className="mt-0.5 text-xs font-bold tabular-nums text-emerald-300 sm:text-sm">
+                    {estimatedPayout.toLocaleString()} pt
+                    <span className="ml-1 font-semibold text-emerald-200/80">
+                      (+{(estimatedPayout - amount).toLocaleString()} pt)
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-3 border-t border-amber-500/20 pt-2 text-[11px] text-slate-400">
+                予想を確定すると保有ポイントは{' '}
+                {(state.user.points - amount).toLocaleString()} pt
+                になります。的中した場合は試合終了時に獲得ポイントが加算されます。
+              </p>
+            </div>
+
             {message && (
               <div
                 role="status"
@@ -355,7 +413,7 @@ export function PredictionPage({
       <section className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 space-y-3">
         <h2 className="text-base font-bold text-white">あなたの予想履歴</h2>
         {state.bets.length === 0 ? (
-          <p className="py-6 text-center text-xs text-slate-500">
+          <p className="py-6 text-center text-xs text-slate-400">
             まだ予想履歴がありません。上のフォームから勝敗を予想してみましょう。
           </p>
         ) : (

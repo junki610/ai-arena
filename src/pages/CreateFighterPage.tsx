@@ -217,7 +217,7 @@ export function CreateFighterPage({
         <h1 className="text-xl font-extrabold text-white sm:text-2xl">
           AIファイター作成
         </h1>
-        <p className="text-xs text-slate-400 sm:text-sm">
+        <p className="text-sm text-slate-300 sm:text-[15px]">
           エンジン傾向・性格・合計100ptのステータス・スキル3つ・育成者の指示文を設定すると、今日の対戦カードに自動で出場します。
         </p>
       </div>
@@ -318,7 +318,7 @@ export function CreateFighterPage({
                       </span>
                       {selected && <Check className="h-4 w-4 text-cyan-300" />}
                     </div>
-                    <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
                       {prof.tendencySummary}
                     </p>
                   </button>
@@ -360,7 +360,7 @@ export function CreateFighterPage({
                           <Check className="h-4 w-4 text-indigo-300" />
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-300">
                         {prof.description}
                       </p>
                     </button>
@@ -377,7 +377,7 @@ export function CreateFighterPage({
             <h2 className="text-base font-bold text-white">
               2. アバター作成（見た目カスタマイズ）
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-300">
               ボディ形状・カラー・パーツ・目を自由に組み合わせられます。手動編集前はエンジンと性格に合わせて初期候補が連動します。
             </p>
           </div>
@@ -388,6 +388,36 @@ export function CreateFighterPage({
           />
         </section>
 
+        {/* 残りポイント追随バー（ステータス調整中も常時見えるよう sticky 表示） */}
+        <div className="sticky top-[108px] z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-700 bg-slate-900/95 px-3.5 py-2 shadow-lg shadow-slate-950/50 backdrop-blur-sm sm:top-[120px]">
+          <span className="text-xs font-bold text-slate-100 sm:text-sm">
+            ステータス配分
+            <span className="ml-2 font-normal text-slate-400">
+              合計 {totalAllocated} / 100 pt
+            </span>
+          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-lg px-3 py-1 text-xs font-bold tabular-nums ${
+                remainingPoints === 0
+                  ? 'bg-emerald-500/20 text-emerald-300'
+                  : 'bg-amber-500/20 text-amber-300'
+              }`}
+            >
+              残り {remainingPoints} pt
+            </span>
+            {remainingPoints > 0 && (
+              <button
+                type="button"
+                onClick={handleAutoFillRemaining}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+              >
+                残りを自動配分
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* ステータス配分（合計100pt） */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -395,7 +425,7 @@ export function CreateFighterPage({
               <h2 className="text-base font-bold text-white">
                 3. ステータス配分（合計 100pt）
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300">
                 各項目 {MIN_STAT}〜{MAX_STAT}pt の範囲で配分してください。
               </p>
             </div>
@@ -478,7 +508,7 @@ export function CreateFighterPage({
               <h2 className="text-base font-bold text-white">
                 4. スキル選択（3つ選択）
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300">
                 4つ目を選ぶと最も古い選択が入れ替わります。
               </p>
             </div>
@@ -536,11 +566,11 @@ export function CreateFighterPage({
                         {catLabel}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
                       {skill.description}
                     </p>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
                     <span>CT: {skill.cooldown}ターン</span>
                     {isSelected && (
                       <span className="font-bold text-cyan-300">選択中</span>
@@ -574,7 +604,7 @@ export function CreateFighterPage({
             placeholder="例: 序盤から先手で全力攻撃を仕掛けろ。相手が溜めたら防御やカウンターで耐えろ。"
             className="w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-sm text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
           />
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-300">
             ヒント: 「先手・全力・火力」「防御・耐える・回復・カウンター」「溜め・一撃・必殺」「トリッキー・攪乱・精密」などのキーワードが試合中の行動傾向に反映されます。
           </p>
         </section>

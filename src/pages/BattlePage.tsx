@@ -319,7 +319,7 @@ export function BattlePage({
       {/* 2Dバトルステージ */}
       <section
         key={`stage-${currentEvent?.isCrit ? cursor : 'calm'}`}
-        className={`relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-4 sm:p-6 ${stageShakeClass}`}
+        className={`relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 px-4 py-3 sm:px-6 sm:py-4 ${stageShakeClass}`}
       >
         {/* アリーナ背景装飾グリッド */}
         <div
@@ -328,7 +328,7 @@ export function BattlePage({
         />
 
         {/* ターン表示バッジ */}
-        <div className="relative z-10 mb-5 flex flex-wrap items-center justify-between gap-2">
+        <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2">
           <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-bold text-slate-200">
             {isIntro
               ? 'BATTLE START!'
@@ -380,11 +380,11 @@ export function BattlePage({
         )}
 
         {/* ファイター対峙エリア */}
-        <div className="relative z-10 grid grid-cols-2 items-end gap-3 pt-4 sm:gap-8">
+        <div className="relative z-10 grid grid-cols-2 items-end gap-3 pt-1 sm:gap-8">
           {/* 左側：赤枠ファイター */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex flex-col items-center gap-2 text-center">
-              <div className="relative flex items-center justify-center py-2">
+              <div className="relative flex items-center justify-center">
                 <FighterAvatar
                   key={
                     isIntro
@@ -394,7 +394,7 @@ export function BattlePage({
                         : `left-${cursor}`
                   }
                   fighter={fighterA}
-                  size="lg"
+                  size="xl"
                   facing="right"
                   transparentBg
                   animationClass={leftAnim}
@@ -451,7 +451,7 @@ export function BattlePage({
               </div>
 
               <div className="min-w-0">
-                <div className="truncate text-sm font-extrabold text-white sm:text-base">
+                <div className="truncate text-base font-extrabold text-white sm:text-lg">
                   {fighterA.name}
                 </div>
                 <div className="mt-1 flex flex-wrap justify-center gap-1">
@@ -485,9 +485,9 @@ export function BattlePage({
           </div>
 
           {/* 右側：青枠ファイター */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex flex-col items-center gap-2 text-center">
-              <div className="relative flex items-center justify-center py-2">
+              <div className="relative flex items-center justify-center">
                 <FighterAvatar
                   key={
                     isIntro
@@ -497,7 +497,7 @@ export function BattlePage({
                         : `right-${cursor}`
                   }
                   fighter={fighterB}
-                  size="lg"
+                  size="xl"
                   facing="left"
                   transparentBg
                   animationClass={rightAnim}
@@ -554,7 +554,7 @@ export function BattlePage({
               </div>
 
               <div className="min-w-0">
-                <div className="truncate text-sm font-extrabold text-white sm:text-base">
+                <div className="truncate text-base font-extrabold text-white sm:text-lg">
                   {fighterB.name}
                 </div>
                 <div className="mt-1 flex flex-wrap justify-center gap-1">
@@ -591,7 +591,7 @@ export function BattlePage({
         {/* 現在の行動実況ハイライト */}
         <div
           aria-live="polite"
-          className="relative z-10 mt-5 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-center text-xs font-semibold text-slate-100 sm:text-sm"
+          className="relative z-10 mt-3 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-center text-xs font-semibold text-slate-100 sm:text-sm"
         >
           {isIntro
             ? `${fighterA.name} と ${fighterB.name} がアリーナへ入場！まもなく試合開始！`
@@ -601,7 +601,7 @@ export function BattlePage({
         </div>
 
         {/* 再生コントロールバー */}
-        <div className="relative z-10 mt-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="relative z-10 mt-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"

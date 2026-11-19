@@ -381,3 +381,9 @@
   scrollbar-width: thin;
   scrollbar-color: rgb(71 85 105) rgb(15 23 42);
 }
+
+/* === 可読性パス（UX改善）: 薄いグレーを全体で持ち上げ、最小文字を底上げ === */
+body .text-slate-500 { color: #a5b4c9; }
+body .text-slate-400 { color: #c6d0df; }
+body .text-\[11px\] { font-size: 12px; line-height: 1.45; }
+body .text-\[10px\] { font-size: 11px; }

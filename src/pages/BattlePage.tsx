@@ -288,7 +288,7 @@ export function BattlePage({
           <h1 className="text-lg font-extrabold text-white sm:text-xl">
             試合再生アリーナ
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-sm text-slate-300">
             最大20ターンのオートバトルを再生します。終了時に戦績と無料予想ポイントが自動反映されます。
           </p>
         </div>
@@ -465,7 +465,7 @@ export function BattlePage({
 
             {/* 動的カラーHPバー */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-bold tabular-nums">
+              <div className="flex justify-between text-xs font-bold tabular-nums">
                 <span className="text-slate-300">HP</span>
                 <span
                   className={
@@ -568,7 +568,7 @@ export function BattlePage({
 
             {/* 動的カラーHPバー */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-bold tabular-nums">
+              <div className="flex justify-between text-xs font-bold tabular-nums">
                 <span className="text-slate-300">HP</span>
                 <span
                   className={

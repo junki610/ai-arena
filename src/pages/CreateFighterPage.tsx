@@ -7,11 +7,18 @@ import {
   Swords,
   Ticket,
 } from 'lucide-react';
+import { AvatarEditor } from '../components/AvatarEditor';
+import {
+  getEngineSuggestedColors,
+  getPersonalitySuggestedShape,
+  getSuggestedAppearance,
+} from '../data/appearance';
 import { SKILLS } from '../data/skills';
 import { ENGINE_PROFILES, PERSONALITY_PROFILES } from '../engine/profiles';
 import { CreateFighterInput } from '../storage/repository';
 import {
   EngineType,
+  FighterAppearance,
   FighterStats,
   PersonalityType,
 } from '../types/arena';
@@ -61,6 +68,11 @@ export function CreateFighterPage({
   const [name, setName] = useState('');
   const [engine, setEngine] = useState<EngineType>('gemini');
   const [personality, setPersonality] = useState<PersonalityType>('aggressive');
+  const [appearance, setAppearance] = useState<FighterAppearance>(() =>
+    getSuggestedAppearance('gemini', 'aggressive')
+  );
+  /** ユーザーがアバターを手動変更したかどうか（一度でも変更したら自動連動で上書きしない） */
+  const [hasManualAvatarEdit, setHasManualAvatarEdit] = useState(false);
   const [stats, setStats] = useState<FighterStats>({
     hp: 20,
     attack: 25,
@@ -133,6 +145,39 @@ export function CreateFighterPage({
     });
   };
 
+  /** エンジン変更時：未手動編集ならメイン／サブカラー候補を連動 */
+  const handleSelectEngine = (nextEngine: EngineType) => {
+    setEngine(nextEngine);
+    if (!hasManualAvatarEdit) {
+      const colors = getEngineSuggestedColors(nextEngine);
+      setAppearance((prev) => ({
+        ...prev,
+        mainColor: colors.mainColor,
+        subColor: colors.subColor,
+      }));
+    }
+  };
+
+  /** 性格変更時：未手動編集なら body / parts / eyes 候補を連動 */
+  const handleSelectPersonality = (nextPersonality: PersonalityType) => {
+    setPersonality(nextPersonality);
+    if (!hasManualAvatarEdit) {
+      const shape = getPersonalitySuggestedShape(nextPersonality);
+      setAppearance((prev) => ({
+        ...prev,
+        body: shape.body,
+        parts: shape.parts,
+        eyes: shape.eyes,
+      }));
+    }
+  };
+
+  /** ユーザーによるアバター手動変更 */
+  const handleManualAppearanceChange = (next: FighterAppearance) => {
+    setHasManualAvatarEdit(true);
+    setAppearance(next);
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -156,6 +201,7 @@ export function CreateFighterPage({
       name: name.trim(),
       engine,
       personality,
+      appearance,
       stats,
       skillIds: selectedSkillIds as [string, string, string],
       instruction: instruction.trim(),
@@ -258,7 +304,7 @@ export function CreateFighterPage({
                   <button
                     key={eng}
                     type="button"
-                    onClick={() => setEngine(eng)}
+                    onClick={() => handleSelectEngine(eng)}
                     aria-pressed={selected}
                     className={`rounded-xl border p-3.5 text-left transition ${
                       selected
@@ -298,7 +344,7 @@ export function CreateFighterPage({
                     <button
                       key={pers}
                       type="button"
-                      onClick={() => setPersonality(pers)}
+                      onClick={() => handleSelectPersonality(pers)}
                       aria-pressed={selected}
                       className={`rounded-xl border p-3 text-left transition ${
                         selected
@@ -325,12 +371,29 @@ export function CreateFighterPage({
           </div>
         </section>
 
+        {/* アバターエディタ */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-bold text-white">
+              2. アバター作成（見た目カスタマイズ）
+            </h2>
+            <p className="text-xs text-slate-400">
+              ボディ形状・カラー・パーツ・目を自由に組み合わせられます。手動編集前はエンジンと性格に合わせて初期候補が連動します。
+            </p>
+          </div>
+          <AvatarEditor
+            value={appearance}
+            onChange={handleManualAppearanceChange}
+            isAutoSynced={!hasManualAvatarEdit}
+          />
+        </section>
+
         {/* ステータス配分（合計100pt） */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-base font-bold text-white">
-                2. ステータス配分（合計 100pt）
+                3. ステータス配分（合計 100pt）
               </h2>
               <p className="text-xs text-slate-400">
                 各項目 {MIN_STAT}〜{MAX_STAT}pt の範囲で配分してください。
@@ -413,7 +476,7 @@ export function CreateFighterPage({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-base font-bold text-white">
-                3. スキル選択（3つ選択）
+                4. スキル選択（3つ選択）
               </h2>
               <p className="text-xs text-slate-400">
                 4つ目を選ぶと最も古い選択が入れ替わります。
@@ -496,7 +559,7 @@ export function CreateFighterPage({
               htmlFor="fighter-instruction"
               className="text-base font-bold text-white"
             >
-              4. 育成者の指示文（作戦プロンプト想定）
+              5. 育成者の指示文（作戦プロンプト想定）
             </label>
             <span className="text-xs tabular-nums text-slate-400">
               {instruction.length} / 500字

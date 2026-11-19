@@ -71,7 +71,7 @@ export function Header({
           <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5">
             <Coins className="h-4 w-4 text-amber-400" />
             <div className="leading-tight">
-              <div className="text-[10px] text-amber-200/80">
+              <div className="hidden text-[10px] text-amber-200/80 min-[420px]:block">
                 無料ポイント（ランキング専用）
               </div>
               <div className="text-sm font-extrabold tabular-nums text-amber-300">
@@ -95,10 +95,10 @@ export function Header({
                 type="button"
                 onClick={() => onSelectTab(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-semibold transition-colors sm:flex-none sm:px-4 sm:text-sm ${
+                className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 border-b-2 px-2 py-3 text-[13px] font-semibold transition-colors sm:flex-none sm:px-4 sm:text-sm ${
                   isActive
                     ? 'border-cyan-400 text-cyan-300'
-                    : 'border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    : 'border-transparent text-slate-300 hover:border-slate-700 hover:text-white'
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />

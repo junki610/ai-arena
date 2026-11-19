@@ -1,7 +1,9 @@
+import { normalizeAppearance } from '../data/appearance';
 import {
   createInitialArenaState,
   generateMatchCards,
   getLocalDateString,
+  INITIAL_FIGHTERS,
 } from '../data/seed';
 import {
   ArenaState,
@@ -9,6 +11,7 @@ import {
   Bet,
   EngineType,
   Fighter,
+  FighterAppearance,
   FighterStats,
   MatchCard,
   PersonalityType,
@@ -17,11 +20,17 @@ import {
 const STORAGE_KEY = 'ai_arena_mvp_state_v1';
 const DAILY_BONUS_POINTS = 200;
 
+/** プリセットIDごとの固有appearance参照マップ（既存保存データ補完用） */
+const PRESET_APPEARANCE_MAP = new Map<string, FighterAppearance>(
+  INITIAL_FIGHTERS.map((f) => [f.id, f.appearance])
+);
+
 /** 新規ファイター作成入力 */
 export interface CreateFighterInput {
   name: string;
   engine: EngineType;
   personality: PersonalityType;
+  appearance: FighterAppearance;
   stats: FighterStats;
   skillIds: [string, string, string];
   instruction: string;
@@ -89,9 +98,23 @@ class LocalStorageArenaRepository implements ArenaRepository {
         return initial;
       }
 
+      // 既存の保存データに appearance が無い場合はプリセット固有値またはデフォルト値で補完する
+      const normalizedFighters: Fighter[] = parsed.fighters.map((f) => {
+        const presetApp = PRESET_APPEARANCE_MAP.get(f.id);
+        const appearance = f.appearance
+          ? normalizeAppearance(f.appearance, f.engine, f.personality)
+          : presetApp
+            ? { ...presetApp }
+            : normalizeAppearance(undefined, f.engine, f.personality);
+        return {
+          ...f,
+          appearance,
+        };
+      });
+
       return {
         version: 1,
-        fighters: parsed.fighters,
+        fighters: normalizedFighters,
         matches: parsed.matches,
         results: Array.isArray(parsed.results) ? parsed.results : [],
         bets: Array.isArray(parsed.bets) ? parsed.bets : [],
@@ -165,6 +188,7 @@ class LocalStorageArenaRepository implements ArenaRepository {
       name: input.name.trim(),
       engine: input.engine,
       personality: input.personality,
+      appearance: { ...input.appearance },
       stats: { ...input.stats },
       skillIds: [...input.skillIds] as [string, string, string],
       instruction: input.instruction.trim().slice(0, 500),

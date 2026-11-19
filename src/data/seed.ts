@@ -23,6 +23,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'フレア・イグニス',
     engine: 'gemini',
     personality: 'aggressive',
+    appearance: {
+      body: 'spiky',
+      mainColor: '#ef4444',
+      subColor: '#f59e0b',
+      parts: 'horn',
+      eyes: 'sharp',
+    },
     stats: { hp: 20, attack: 32, defense: 12, speed: 22, technique: 14 },
     skillIds: ['overclock_slash', 'burst_charge', 'risk_dive'],
     instruction:
@@ -46,6 +53,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'ノヴァ・スパーク',
     engine: 'gemini',
     personality: 'tricky',
+    appearance: {
+      body: 'round',
+      mainColor: '#3b82f6',
+      subColor: '#06b6d4',
+      parts: 'wing',
+      eyes: 'star',
+    },
     stats: { hp: 18, attack: 26, defense: 14, speed: 24, technique: 18 },
     skillIds: ['apex_beam', 'tempo_shift', 'logic_break'],
     instruction:
@@ -69,6 +83,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'イージス・モノリス',
     engine: 'claude',
     personality: 'cautious',
+    appearance: {
+      body: 'robo',
+      mainColor: '#f59e0b',
+      subColor: '#64748b',
+      parts: 'antenna',
+      eyes: 'round',
+    },
     stats: { hp: 28, attack: 14, defense: 30, speed: 12, technique: 16 },
     skillIds: ['iron_wall', 'repair_protocol', 'counter_stance'],
     instruction:
@@ -92,6 +113,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'ヴェール・ソナタ',
     engine: 'claude',
     personality: 'tricky',
+    appearance: {
+      body: 'slime',
+      mainColor: '#a855f7',
+      subColor: '#ec4899',
+      parts: 'halo',
+      eyes: 'happy',
+    },
     stats: { hp: 22, attack: 16, defense: 22, speed: 16, technique: 24 },
     skillIds: ['data_drain', 'jamming_noise', 'precision_scan'],
     instruction:
@@ -115,6 +143,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'クロノ・バランサー',
     engine: 'chatgpt',
     personality: 'cautious',
+    appearance: {
+      body: 'round',
+      mainColor: '#10b981',
+      subColor: '#eab308',
+      parts: 'halo',
+      eyes: 'round',
+    },
     stats: { hp: 22, attack: 20, defense: 20, speed: 18, technique: 20 },
     skillIds: ['precision_scan', 'counter_stance', 'data_drain'],
     instruction:
@@ -138,6 +173,13 @@ export const INITIAL_FIGHTERS: Fighter[] = [
     name: 'アーク・ストライダー',
     engine: 'chatgpt',
     personality: 'aggressive',
+    appearance: {
+      body: 'spiky',
+      mainColor: '#06b6d4',
+      subColor: '#6366f1',
+      parts: 'ear',
+      eyes: 'sharp',
+    },
     stats: { hp: 20, attack: 24, defense: 16, speed: 22, technique: 18 },
     skillIds: ['overclock_slash', 'logic_break', 'tempo_shift'],
     instruction:
@@ -229,6 +271,7 @@ export function generateMatchCards(fighters: Fighter[], maxMatches = 8): MatchCa
 export function createInitialArenaState(): ArenaState {
   const fighters = INITIAL_FIGHTERS.map((f) => ({
     ...f,
+    appearance: { ...f.appearance },
     stats: { ...f.stats },
     skillIds: [...f.skillIds] as [string, string, string],
     recentForm: [...f.recentForm],

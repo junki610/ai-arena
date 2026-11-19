@@ -9,6 +9,10 @@ import {
   Trophy,
   Zap,
 } from 'lucide-react';
+import {
+  BattleEffectOverlay,
+  resolveBattleEffect,
+} from '../components/BattleEffectOverlay';
 import { EngineBadge } from '../components/EngineBadge';
 import { FighterAvatar } from '../components/FighterAvatar';
 import { calculateMaxHp, simulateBattle } from '../engine/battleSimulator';
@@ -30,13 +34,24 @@ interface BattlePageProps {
 }
 
 const SPEED_OPTIONS: Array<{ label: string; value: number; intervalMs: number }> = [
-  { label: '1x', value: 1, intervalMs: 1100 },
-  { label: '2x', value: 2, intervalMs: 550 },
-  { label: '4x', value: 4, intervalMs: 240 },
+  { label: '1x', value: 1, intervalMs: 1150 },
+  { label: '2x', value: 2, intervalMs: 580 },
+  { label: '4x', value: 4, intervalMs: 280 },
 ];
 
+/** 残HP割合に応じたHPバーの色クラス（緑→黄→赤＋低残量点滅） */
+function getHpBarClass(hpPct: number): string {
+  if (hpPct > 50) {
+    return 'bg-gradient-to-r from-emerald-500 to-lime-400';
+  }
+  if (hpPct > 25) {
+    return 'bg-gradient-to-r from-amber-500 to-yellow-400';
+  }
+  return 'bg-gradient-to-r from-rose-600 to-red-400 animate-hp-critical';
+}
+
 /**
- * 画面3: 試合再生（最大20ターンのターン制オートバトル＋2D簡易アニメーション＋実況ログ）
+ * 画面3: 試合再生（最大20ターンのターン制オートバトル＋強化2D演出＋実況ログ）
  */
 export function BattlePage({
   state,
@@ -74,6 +89,8 @@ export function BattlePage({
   const [battleResult, setBattleResult] = useState<BattleResult | null>(savedResult);
   const [cursor, setCursor] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isIntro, setIsIntro] = useState<boolean>(false);
+  const [introKey, setIntroKey] = useState<number>(0);
   const [speed, setSpeed] = useState<number>(1);
   const [settledBets, setSettledBets] = useState<Bet[]>([]);
   const committedResultIdRef = useRef<string | null>(null);
@@ -84,13 +101,26 @@ export function BattlePage({
     setBattleResult(savedResult);
     setCursor(savedResult ? savedResult.events.length - 1 : -1);
     setIsPlaying(false);
+    setIsIntro(false);
     setSettledBets([]);
     committedResultIdRef.current = savedResult ? savedResult.id : null;
   }, [activeMatch?.id, savedResult]);
 
+  // 試合開始時のVSスライドイン登場演出タイマー
+  useEffect(() => {
+    if (!isIntro) return;
+    const duration = speed >= 4 ? 480 : 850;
+    const timer = window.setTimeout(() => {
+      setIsIntro(false);
+      setCursor(0);
+      setIsPlaying(true);
+    }, duration);
+    return () => window.clearTimeout(timer);
+  }, [isIntro, speed]);
+
   // 再生タイマー制御
   useEffect(() => {
-    if (!isPlaying || !battleResult) return;
+    if (!isPlaying || isIntro || !battleResult) return;
 
     const speedConf =
       SPEED_OPTIONS.find((s) => s.value === speed) ?? SPEED_OPTIONS[0];
@@ -107,7 +137,7 @@ export function BattlePage({
     }, speedConf.intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [isPlaying, battleResult, speed]);
+  }, [isPlaying, isIntro, battleResult, speed]);
 
   // 最終イベントに到達したら戦績・予想を自動反映
   useEffect(() => {
@@ -143,7 +173,9 @@ export function BattlePage({
   const visibleEvents: BattleActionEvent[] =
     battleResult && cursor >= 0 ? battleResult.events.slice(0, cursor + 1) : [];
   const currentEvent =
-    visibleEvents.length > 0 ? visibleEvents[visibleEvents.length - 1] : null;
+    !isIntro && visibleEvents.length > 0
+      ? visibleEvents[visibleEvents.length - 1]
+      : null;
 
   const leftHp = currentEvent ? currentEvent.leftHpAfter : leftMaxHp;
   const rightHp = currentEvent ? currentEvent.rightHpAfter : rightMaxHp;
@@ -151,20 +183,29 @@ export function BattlePage({
   const rightHpPct = Math.max(0, Math.round((rightHp / rightMaxHp) * 100));
 
   const isComplete =
-    battleResult !== null && cursor >= battleResult.events.length - 1;
+    !isIntro &&
+    battleResult !== null &&
+    cursor >= battleResult.events.length - 1;
+
+  /** VS登場演出付きで最初から再生する */
+  const startWithIntro = (result: BattleResult) => {
+    setBattleResult(result);
+    setCursor(-1);
+    setIsPlaying(false);
+    setIntroKey((k) => k + 1);
+    setIsIntro(true);
+  };
 
   /** 試合開始または再生・一時停止トグル */
   const handlePlayToggle = () => {
+    if (isIntro) return;
     if (!battleResult) {
       const simulated = simulateBattle(activeMatch.id, fighterA, fighterB);
-      setBattleResult(simulated);
-      setCursor(0);
-      setIsPlaying(true);
+      startWithIntro(simulated);
       return;
     }
-    if (cursor >= battleResult.events.length - 1) {
-      setCursor(0);
-      setIsPlaying(true);
+    if (cursor >= battleResult.events.length - 1 || cursor < 0) {
+      startWithIntro(battleResult);
       return;
     }
     setIsPlaying((prev) => !prev);
@@ -172,11 +213,11 @@ export function BattlePage({
 
   const handleRestart = () => {
     if (!battleResult) return;
-    setCursor(0);
-    setIsPlaying(true);
+    startWithIntro(battleResult);
   };
 
   const handleSkipToEnd = () => {
+    setIsIntro(false);
     if (!battleResult) {
       const simulated = simulateBattle(activeMatch.id, fighterA, fighterB);
       setBattleResult(simulated);
@@ -188,14 +229,30 @@ export function BattlePage({
     setIsPlaying(false);
   };
 
-  // アニメーションクラス判定
-  let leftAnim = '';
-  let rightAnim = '';
-  if (currentEvent) {
+  // アバターのアニメーション判定
+  let leftAnim = 'animate-idle-float';
+  let rightAnim = 'animate-idle-float';
+  let leftEffect: ReturnType<typeof resolveBattleEffect>['effect'] | null = null;
+  let rightEffect: ReturnType<typeof resolveBattleEffect>['effect'] | null = null;
+
+  if (isIntro) {
+    leftAnim = 'animate-slide-in-left';
+    rightAnim = 'animate-slide-in-right';
+  } else if (isComplete && battleResult) {
+    const leftWon = battleResult.winnerId === fighterA.id;
+    leftAnim = leftWon ? 'animate-victory-bounce' : 'animate-ko-fall-left';
+    rightAnim = leftWon ? 'animate-ko-fall-right' : 'animate-victory-bounce';
+  } else if (currentEvent) {
+    const fx = resolveBattleEffect(currentEvent.action, currentEvent.skillId);
+    const fxSide =
+      fx.anchor === 'target' ? currentEvent.targetSide : currentEvent.actorSide;
+    if (fxSide === 'left') leftEffect = fx.effect;
+    if (fxSide === 'right') rightEffect = fx.effect;
+
     if (currentEvent.actorSide === 'left') {
       if (currentEvent.action === 'attack' || currentEvent.damage > 0) {
-        leftAnim = 'animate-lunge-right';
-        if (currentEvent.damage > 0) rightAnim = 'animate-hit-shake';
+        leftAnim = 'animate-dash-right';
+        if (currentEvent.damage > 0) rightAnim = 'animate-hit-knockback-right';
       } else if (currentEvent.action === 'defend') {
         leftAnim = 'animate-guard-pulse';
       } else if (currentEvent.action === 'charge') {
@@ -203,8 +260,8 @@ export function BattlePage({
       }
     } else {
       if (currentEvent.action === 'attack' || currentEvent.damage > 0) {
-        rightAnim = 'animate-lunge-left';
-        if (currentEvent.damage > 0) leftAnim = 'animate-hit-shake';
+        rightAnim = 'animate-dash-left';
+        if (currentEvent.damage > 0) leftAnim = 'animate-hit-knockback-left';
       } else if (currentEvent.action === 'defend') {
         rightAnim = 'animate-guard-pulse';
       } else if (currentEvent.action === 'charge') {
@@ -212,6 +269,12 @@ export function BattlePage({
       }
     }
   }
+
+  // クリティカル被弾時はステージ全体をシェイク
+  const stageShakeClass =
+    !isComplete && currentEvent?.isCrit && currentEvent.damage > 0
+      ? 'animate-screen-shake'
+      : '';
 
   const userBetsForMatch = state.bets.filter(
     (b) => b.matchId === activeMatch.id
@@ -253,47 +316,140 @@ export function BattlePage({
         </div>
       </section>
 
-      {/* 2D簡易バトルステージ */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-4 sm:p-6">
+      {/* 2Dバトルステージ */}
+      <section
+        key={`stage-${currentEvent?.isCrit ? cursor : 'calm'}`}
+        className={`relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-4 sm:p-6 ${stageShakeClass}`}
+      >
+        {/* アリーナ背景装飾グリッド */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-cyan-500/5 to-transparent"
+        />
+
         {/* ターン表示バッジ */}
-        <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="relative z-10 mb-5 flex flex-wrap items-center justify-between gap-2">
           <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-bold text-slate-200">
-            {currentEvent
-              ? `TURN ${currentEvent.turn} / 20`
-              : battleResult
-                ? `全 ${battleResult.totalTurns} ターン`
-                : 'READY（試合前）'}
+            {isIntro
+              ? 'BATTLE START!'
+              : currentEvent
+                ? `TURN ${currentEvent.turn} / 20`
+                : battleResult
+                  ? `全 ${battleResult.totalTurns} ターン`
+                  : 'READY（試合前）'}
           </span>
           {userBetsForMatch.length > 0 && (
             <span className="rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200">
-              あなたの予想: {userBetsForMatch.map((b) => `${b.pickedFighterName}(${b.amount}pt)`).join(' / ')}
+              あなたの予想:{' '}
+              {userBetsForMatch
+                .map((b) => `${b.pickedFighterName}(${b.amount}pt)`)
+                .join(' / ')}
             </span>
           )}
         </div>
 
+        {/* 試合開始VSスプラッシュオーバーレイ */}
+        {isIntro && (
+          <div
+            key={`vs-${introKey}`}
+            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
+          >
+            <div className="animate-vs-splash rounded-2xl border-2 border-amber-400/70 bg-slate-950/85 px-6 py-3 text-center shadow-2xl shadow-amber-500/20">
+              <span className="bg-gradient-to-r from-rose-400 via-amber-300 to-sky-400 bg-clip-text text-4xl font-black tracking-widest text-transparent sm:text-5xl">
+                VS
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 決着時 FINISH! オーバーレイ */}
+        {isComplete && battleResult && (
+          <div
+            key={`finish-${battleResult.id}`}
+            className="pointer-events-none absolute inset-x-0 top-1/3 z-30 flex -translate-y-1/2 items-center justify-center"
+          >
+            <div className="animate-finish-pop rounded-2xl border-2 border-amber-300/80 bg-slate-950/90 px-7 py-2.5 text-center shadow-2xl shadow-amber-500/30">
+              <div className="bg-gradient-to-r from-amber-300 via-yellow-200 to-rose-400 bg-clip-text text-3xl font-black tracking-widest text-transparent sm:text-5xl">
+                FINISH!
+              </div>
+              <div className="mt-0.5 text-[11px] font-bold tracking-wider text-amber-200 sm:text-xs">
+                WINNER: {battleResult.winnerName}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ファイター対峙エリア */}
-        <div className="grid grid-cols-2 items-center gap-3 sm:gap-8">
+        <div className="relative z-10 grid grid-cols-2 items-end gap-3 pt-4 sm:gap-8">
           {/* 左側：赤枠ファイター */}
           <div className="space-y-3">
             <div className="flex flex-col items-center gap-2 text-center">
-              <div className="relative">
+              <div className="relative flex items-center justify-center py-2">
                 <FighterAvatar
-                  key={`left-${cursor}`}
+                  key={
+                    isIntro
+                      ? `left-intro-${introKey}`
+                      : isComplete
+                        ? `left-end-${battleResult?.id}`
+                        : `left-${cursor}`
+                  }
                   fighter={fighterA}
                   size="lg"
+                  facing="right"
+                  transparentBg
                   animationClass={leftAnim}
                 />
-                {currentEvent?.targetSide === 'left' && currentEvent.damage > 0 && (
-                  <span className="absolute -top-3 -right-3 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-black text-white shadow">
-                    -{currentEvent.damage}
-                  </span>
+
+                {/* スキル系統エフェクト */}
+                {leftEffect && (
+                  <BattleEffectOverlay
+                    key={`fx-left-${cursor}`}
+                    effect={leftEffect}
+                  />
                 )}
-                {currentEvent?.actorSide === 'left' && currentEvent.healed > 0 && (
-                  <span className="absolute -top-3 -left-3 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-black text-slate-950 shadow">
-                    +{currentEvent.healed}
-                  </span>
-                )}
+
+                {/* フローティングダメージ表示 */}
+                {!isComplete &&
+                  currentEvent?.targetSide === 'left' &&
+                  currentEvent.damage > 0 && (
+                    <div
+                      key={`dmg-left-${cursor}`}
+                      className={`pointer-events-none absolute -top-2 left-1/2 z-30 whitespace-nowrap text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] ${
+                        currentEvent.isCrit
+                          ? 'animate-crit-float text-rose-400'
+                          : 'animate-damage-float text-white'
+                      }`}
+                    >
+                      {currentEvent.isCrit && (
+                        <div className="text-[11px] font-black tracking-wider text-amber-300">
+                          CRITICAL!
+                        </div>
+                      )}
+                      <div
+                        className={
+                          currentEvent.isCrit
+                            ? 'text-2xl font-black sm:text-3xl'
+                            : 'text-lg font-extrabold sm:text-xl'
+                        }
+                      >
+                        -{currentEvent.damage}
+                      </div>
+                    </div>
+                  )}
+
+                {/* 回復フローティング表示 */}
+                {!isComplete &&
+                  currentEvent?.actorSide === 'left' &&
+                  currentEvent.healed > 0 && (
+                    <div
+                      key={`heal-left-${cursor}`}
+                      className="animate-damage-float pointer-events-none absolute -top-2 left-1/2 z-30 whitespace-nowrap text-base font-black text-emerald-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]"
+                    >
+                      +{currentEvent.healed} HP
+                    </div>
+                  )}
               </div>
+
               <div className="min-w-0">
                 <div className="truncate text-sm font-extrabold text-white sm:text-base">
                   {fighterA.name}
@@ -307,17 +463,21 @@ export function BattlePage({
               </div>
             </div>
 
-            {/* HPバー */}
+            {/* 動的カラーHPバー */}
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-bold tabular-nums">
-                <span className="text-rose-300">HP</span>
-                <span className="text-slate-200">
+                <span className="text-slate-300">HP</span>
+                <span
+                  className={
+                    leftHpPct <= 25 ? 'text-rose-400' : 'text-slate-200'
+                  }
+                >
                   {leftHp} / {leftMaxHp} ({leftHpPct}%)
                 </span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div className="h-3.5 overflow-hidden rounded-full bg-slate-800 ring-1 ring-slate-700/80">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-300"
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${getHpBarClass(leftHpPct)}`}
                   style={{ width: `${leftHpPct}%` }}
                 />
               </div>
@@ -327,24 +487,72 @@ export function BattlePage({
           {/* 右側：青枠ファイター */}
           <div className="space-y-3">
             <div className="flex flex-col items-center gap-2 text-center">
-              <div className="relative">
+              <div className="relative flex items-center justify-center py-2">
                 <FighterAvatar
-                  key={`right-${cursor}`}
+                  key={
+                    isIntro
+                      ? `right-intro-${introKey}`
+                      : isComplete
+                        ? `right-end-${battleResult?.id}`
+                        : `right-${cursor}`
+                  }
                   fighter={fighterB}
                   size="lg"
+                  facing="left"
+                  transparentBg
                   animationClass={rightAnim}
                 />
-                {currentEvent?.targetSide === 'right' && currentEvent.damage > 0 && (
-                  <span className="absolute -top-3 -left-3 rounded-full bg-rose-500 px-2 py-0.5 text-xs font-black text-white shadow">
-                    -{currentEvent.damage}
-                  </span>
+
+                {/* スキル系統エフェクト */}
+                {rightEffect && (
+                  <BattleEffectOverlay
+                    key={`fx-right-${cursor}`}
+                    effect={rightEffect}
+                  />
                 )}
-                {currentEvent?.actorSide === 'right' && currentEvent.healed > 0 && (
-                  <span className="absolute -top-3 -right-3 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-black text-slate-950 shadow">
-                    +{currentEvent.healed}
-                  </span>
-                )}
+
+                {/* フローティングダメージ表示 */}
+                {!isComplete &&
+                  currentEvent?.targetSide === 'right' &&
+                  currentEvent.damage > 0 && (
+                    <div
+                      key={`dmg-right-${cursor}`}
+                      className={`pointer-events-none absolute -top-2 left-1/2 z-30 whitespace-nowrap text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] ${
+                        currentEvent.isCrit
+                          ? 'animate-crit-float text-rose-400'
+                          : 'animate-damage-float text-white'
+                      }`}
+                    >
+                      {currentEvent.isCrit && (
+                        <div className="text-[11px] font-black tracking-wider text-amber-300">
+                          CRITICAL!
+                        </div>
+                      )}
+                      <div
+                        className={
+                          currentEvent.isCrit
+                            ? 'text-2xl font-black sm:text-3xl'
+                            : 'text-lg font-extrabold sm:text-xl'
+                        }
+                      >
+                        -{currentEvent.damage}
+                      </div>
+                    </div>
+                  )}
+
+                {/* 回復フローティング表示 */}
+                {!isComplete &&
+                  currentEvent?.actorSide === 'right' &&
+                  currentEvent.healed > 0 && (
+                    <div
+                      key={`heal-right-${cursor}`}
+                      className="animate-damage-float pointer-events-none absolute -top-2 left-1/2 z-30 whitespace-nowrap text-base font-black text-emerald-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]"
+                    >
+                      +{currentEvent.healed} HP
+                    </div>
+                  )}
               </div>
+
               <div className="min-w-0">
                 <div className="truncate text-sm font-extrabold text-white sm:text-base">
                   {fighterB.name}
@@ -358,17 +566,21 @@ export function BattlePage({
               </div>
             </div>
 
-            {/* HPバー */}
+            {/* 動的カラーHPバー */}
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-bold tabular-nums">
-                <span className="text-sky-300">HP</span>
-                <span className="text-slate-200">
+                <span className="text-slate-300">HP</span>
+                <span
+                  className={
+                    rightHpPct <= 25 ? 'text-rose-400' : 'text-slate-200'
+                  }
+                >
                   {rightHp} / {rightMaxHp} ({rightHpPct}%)
                 </span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div className="h-3.5 overflow-hidden rounded-full bg-slate-800 ring-1 ring-slate-700/80">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 transition-all duration-300"
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${getHpBarClass(rightHpPct)}`}
                   style={{ width: `${rightHpPct}%` }}
                 />
               </div>
@@ -379,20 +591,23 @@ export function BattlePage({
         {/* 現在の行動実況ハイライト */}
         <div
           aria-live="polite"
-          className="mt-5 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-center text-xs font-semibold text-slate-100 sm:text-sm"
+          className="relative z-10 mt-5 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-center text-xs font-semibold text-slate-100 sm:text-sm"
         >
-          {currentEvent
-            ? currentEvent.commentary
-            : '「試合を再生」を押すとターン制オートバトルが始まります。'}
+          {isIntro
+            ? `${fighterA.name} と ${fighterB.name} がアリーナへ入場！まもなく試合開始！`
+            : currentEvent
+              ? currentEvent.commentary
+              : '「試合を再生」を押すとターン制オートバトルが始まります。'}
         </div>
 
         {/* 再生コントロールバー */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="relative z-10 mt-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handlePlayToggle}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:bg-cyan-400 sm:text-sm"
+              disabled={isIntro}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50 sm:text-sm"
             >
               {isPlaying ? (
                 <>
@@ -414,7 +629,7 @@ export function BattlePage({
             <button
               type="button"
               onClick={handleRestart}
-              disabled={!battleResult}
+              disabled={!battleResult || isIntro}
               className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 disabled:opacity-40"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -459,7 +674,9 @@ export function BattlePage({
             <div className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-300" />
               <h2 className="text-base font-extrabold text-white sm:text-lg">
-                勝者: {battleResult.winnerName}（{battleResult.finishType === 'KO' ? 'KO' : '判定'} / {battleResult.totalTurns}ターン）
+                勝者: {battleResult.winnerName}（
+                {battleResult.finishType === 'KO' ? 'KO' : '判定'} /{' '}
+                {battleResult.totalTurns}ターン）
               </h2>
             </div>
             <button
@@ -495,7 +712,8 @@ export function BattlePage({
               </div>
               {settledBets.map((bet) => (
                 <div key={bet.id} className="text-xs text-slate-200">
-                  {bet.pickedFighterName} に {bet.amount}pt（{bet.oddsAtBet.toFixed(1)}倍） →{' '}
+                  {bet.pickedFighterName} に {bet.amount}pt（
+                  {bet.oddsAtBet.toFixed(1)}倍） →{' '}
                   {bet.status === 'won' ? (
                     <strong className="text-emerald-300">
                       的中！ +{bet.payout.toLocaleString()} pt 獲得

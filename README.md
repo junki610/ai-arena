@@ -13,3 +13,6 @@
 
 ## 開発
 Vite + React + TypeScript。データは localStorage に保存（バックエンド移行ポイントは docs を参照）。
+
+## 運用メモ
+- 2026-11-19：Mac上のクローンから直接 GitHub へプッシュする運用に切替（push で GitHub Pages へ自動デプロイ）。
